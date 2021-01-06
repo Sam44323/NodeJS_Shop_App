@@ -1,0 +1,132 @@
+const Product = require('../models/product');
+const Order = require('../models/order');
+
+/*
+We can use methods such as findByIdAndDelete and etc only on the models itself but not on the instances created on it.
+*/
+
+exports.getProducts = (req, res, next) => {
+  Product.find()
+    .then((products) => {
+      res.render('shop/product-list', {
+        prods: products,
+        pageTitle: 'All Products',
+        path: '/products',
+        isAuthenticated: req.session.isLoggedIn,
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+exports.getProduct = (req, res, next) => {
+  const prodId = req.params.productId;
+  Product.findById(prodId)
+    .then((product) => {
+      res.render('shop/product-detail', {
+        product: product,
+        pageTitle: product.title,
+        path: '/products',
+        isAuthenticated: req.session.isLoggedIn,
+      });
+    })
+    .catch((err) => console.log(err));
+};
+
+exports.getIndex = (req, res, next) => {
+  Product.find()
+    .then((products) => {
+      res.render('shop/index', {
+        prods: products,
+        pageTitle: 'Shop',
+        path: '/',
+        isAuthenticated: req.session.isLoggedIn,
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+exports.getCart = (req, res, next) => {
+  req.user
+    .populate('cart.items.productId')
+    .execPopulate()
+    .then((user) => {
+      const products = user.cart.items;
+      res.render('shop/cart', {
+        path: '/cart',
+        pageTitle: 'Your Cart',
+        products: req.user.cart.items, // getting the cartItems from the user stores in the session
+        isAuthenticated: req.session.isLoggedIn,
+      });
+    })
+    .catch((err) => console.log(err));
+};
+
+exports.postCart = (req, res, next) => {
+  Product.findById(req.body.productId)
+    .then((product) => {
+      return req.user.addToCart(product);
+    })
+    .then((result) => {
+      res.redirect('/cart');
+    });
+};
+
+exports.postCartDeleteProduct = (req, res, next) => {
+  req.user
+    .removeFromCart(req.body.productId)
+    .then((result) => {
+      res.redirect('/cart');
+    })
+    .catch((err) => console.log(err));
+};
+
+exports.postOrder = (req, res, next) => {
+  req.user
+    .populate('cart.items.productId')
+    .execPopulate()
+    .then((user) => {
+      const products = user.cart.items.map((i) => {
+        return { quantity: i.quantity, product: { ...i.productId._doc } };
+      });
+      const order = new Order({
+        user: {
+          name: req.user.name,
+          userId: req.user,
+        },
+        products: products,
+      });
+      return order.save();
+    })
+    .then((result) => {
+      return req.user.clearCart();
+    })
+    .then(() => {
+      res.redirect('/orders');
+    })
+    .catch((err) => console.log(err));
+};
+
+exports.getOrders = (req, res, next) => {
+  let c = 0;
+  Order.find({ 'user.userId': req.user._id })
+    .then((orders) => {
+      console.log(orders);
+      const ordersArray = orders.map((order) => {
+        return {
+          orderId: ++c,
+          products: [...order.products],
+        };
+      });
+      res.render('shop/orders', {
+        path: '/orders',
+        pageTitle: 'Your Orders',
+        ordersArray: ordersArray,
+        isAuthenticated: req.session.isLoggedIn,
+      });
+    })
+    .catch((err) => console.log(err));
+};
