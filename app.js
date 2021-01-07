@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session); // for storing the sessions in the mongodb database
+const csrf = require('csurf');
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
@@ -24,6 +25,8 @@ app.set('views', 'views'); // the engine will find all the templates in the view
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
 const authRoutes = require('./routes/auth');
+
+const csrfProtection = csrf();
 
 /*
 Why we are creating a new User object when we are getting the user as the response(when use native MongoDB driver)?
@@ -82,6 +85,9 @@ app.use(
     store: store,
   })
 );
+//using csurf after creatingt the sessions as because it will store the tokens in the session
+
+app.use(csrfProtection);
 
 /*
 Why we are storing the user data in the request even after using sessions?
@@ -108,6 +114,20 @@ app.use((req, res, next) => {
       console.log(err);
     });
 });
+
+/*
+locals helps you to set the following local filed to all the rendered views to all the renderes requests
+
+We put csrf tokens in the views where we do the POST request as we only change datas with the POST but not with
+GET
+*/
+
+app.use((req, res, next) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
+
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);

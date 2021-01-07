@@ -2,22 +2,6 @@ const bcrypt = require('bcryptjs');
 
 const User = require('../models/user');
 
-/*
-Why do we need sessions?
------------------------------
-The main concept of using sessions is storing some data temporarily in that sessions before we move it
-to any database(you can also do auth and other stuffs which doesn't require database access).
-
-For eg:-
--------------
-Suppose you went to an e-commerce website and you started adding cart without creating an account on that
-site. So we can take take this approach for anonymous users that, if they starts adding items to the cart
-without creating an account on the site, then we initially store the cart data in sessions and once he applies
-for the checkout(for which they obviously have to create an account so that we can get their details) we
-transfer that cookie data into the database by creating a new user object for him and thus proceeding
-with their orders. 
-*/
-
 exports.getLogin = (req, res) => {
   let cookieValue = req.get('Cookie'); // getting the cookie value from the header
   if (cookieValue) {
@@ -78,6 +62,9 @@ exports.postLogin = (req, res) => {
 };
 
 exports.postSignup = (req, res, next) => {
+  /*
+  after signing up we redirect to th login page for creating a new session with the newly created user
+  */
   const email = req.body.email;
   const password = req.body.password;
   const confirmPassword = req.body.confirmPassword;
