@@ -102,14 +102,12 @@ app.use((req, res, next) => {
   User.findById(req.session.user)
     .then((user) => {
       req.user = user;
-      console.log(req.user);
       next();
     })
     .catch((err) => {
       console.log(err);
     });
 });
-
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);

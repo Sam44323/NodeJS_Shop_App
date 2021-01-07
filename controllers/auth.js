@@ -1,3 +1,5 @@
+const bcrypt = require('bcryptjs');
+
 const User = require('../models/user');
 
 /*
@@ -42,15 +44,30 @@ exports.postLogin = (req, res) => {
   //this sessions will inturn create a new cookie with the value true(encrypted)
   // Fetching a user only when we login, unlike what we did previously of storing the data of the user initially
   // in the app.js file
-
-  User.findById('5feb585e02be05351880f1de')
+  const email = req.body.email;
+  const password = req.body.password;
+  User.findOne({ email: email })
     .then((user) => {
-      req.session.isLoggedIn = true; //setting up a new session for the request
-      req.session.user = user._id; // storing the user id in the session
-      req.session.save((err) => {
-        console.log(err);
-        res.redirect('/');
-      }); //only redirect to the / route after the session is created in the database
+      if (!user) {
+        return res.redirect('/login');
+      }
+      bcrypt
+        .compare(password, user.password)
+        .then((matchValue) => {
+          if (matchValue) {
+            req.session.isLoggedIn = true; //setting up a new session for the request
+            req.session.user = user._id; // storing the user id in the session
+            return req.session.save((err) => {
+              console.log(err);
+              res.redirect('/');
+            }); //returning so that we don't go to the next step of redirecting to the /login page
+          }
+          res.redirect('/login');
+        })
+        .catch((err) => {
+          console.log(err);
+          res.redirect('login');
+        });
 
       /*
       Now after this request is over, we don't lose the user data because the sessions stays intact and
@@ -60,7 +77,32 @@ exports.postLogin = (req, res) => {
     .catch((err) => console.log(err));
 };
 
-exports.postSignup = (req, res, next) => {};
+exports.postSignup = (req, res, next) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  const confirmPassword = req.body.confirmPassword;
+  User.findOne({ email: email }).then((user) => {
+    if (user) {
+      return res.redirect('/signup');
+    }
+    bcrypt
+      .hash(password, 12)
+      .then((hashedPassword) => {
+        const newUser = new User({
+          email: email,
+          password: hashedPassword,
+          cart: { items: [] },
+        });
+        return newUser.save();
+      })
+      .then((result) => {
+        res.redirect('/login');
+      })
+      .catch((err) => {
+        console.log(err);
+      }); //returns a promise for the new password
+  });
+};
 
 exports.postLogoutMethod = (req, res) => {
   //using the destroy() method for destroying the session data
