@@ -3,24 +3,28 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 
 exports.getLogin = (req, res) => {
-  let cookieValue = req.get('Cookie'); // getting the cookie value from the header
+  let cookieValue = req.get('Cookie'); // getting the cookie value from the request header
   if (cookieValue) {
     cookieValue = cookieValue.split('=')[1];
   } else {
     cookieValue = false;
   }
+  const errMessage = req.flash('error')[0]; // as flash is an array of element so we extract the message
   res.render('auth/login', {
     path: '/login',
     pageTitle: 'Login',
     isAuthenticated: cookieValue,
+    errorMessage: errMessage,
   });
 };
 
 exports.getSignup = (req, res, next) => {
+  const message = req.flash('exists')[0];
   res.render('auth/signup', {
     path: '/signup',
     pageTitle: 'Signup',
     isAuthenticated: false,
+    message: message,
   });
 };
 
@@ -33,13 +37,14 @@ exports.postLogin = (req, res) => {
   User.findOne({ email: email })
     .then((user) => {
       if (!user) {
+        req.flash('error', 'Invalid email or password.'); // adding a temporary error field in the session
         return res.redirect('/login');
       }
       bcrypt
         .compare(password, user.password)
         .then((matchValue) => {
           if (matchValue) {
-            req.session.isLoggedIn = true; //setting up a new session for the request
+            req.session.isLoggedIn = true; //setting up a new session for the user
             req.session.user = user._id; // storing the user id in the session
             return req.session.save((err) => {
               console.log(err);
@@ -70,6 +75,8 @@ exports.postSignup = (req, res, next) => {
   const confirmPassword = req.body.confirmPassword;
   User.findOne({ email: email }).then((user) => {
     if (user) {
+      //if an user already exist with the mentioned email
+      req.flash('exists', 'The given email already exists with an account');
       return res.redirect('/signup');
     }
     bcrypt

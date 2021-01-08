@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session); // for storing the sessions in the mongodb database
 const csrf = require('csurf');
+const flash = require('connect-flash');
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
@@ -88,6 +89,7 @@ app.use(
 //using csurf after creatingt the sessions as because it will store the tokens in the session
 
 app.use(csrfProtection);
+app.use(flash());
 
 /*
 Why we are storing the user data in the request even after using sessions?
@@ -116,7 +118,7 @@ app.use((req, res, next) => {
 });
 
 /*
-locals helps you to set the following local filed to all the rendered views to all the renderes requests
+locals helps you to set the following local fields to all the rendered views from all the rendered requests
 
 We put csrf tokens in the views where we do the POST request as we only change datas with the POST but not with
 GET
