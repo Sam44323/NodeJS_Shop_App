@@ -2,9 +2,9 @@ What is the concept of sessions and cookies?
 
 Sessions and cookies are used for remembering the user actions. Suppose you logged into the instagram after
 entering your details. Now the server checks the authenticity of the user by querying the database. Now,if
-it doesn't find any cookies regarding instagram then it creates a new sessions with the user id as it's data
-and thens send the session id stored in a cookie to the user browser. Now for requests now on(if the user didn't
+it doesn't find any cookies regarding your data in the  instagram then it creates a new sessions with the user id as it's data
+and then sends the session id stored in a cookie to the user browser. Now for requests now on(if the user didn't
 logout or delete the cookie) it sets the cookie data to the header and then if the server can match the data
-of the cookie with the id's of the sessions stores in the database then it will see the value of the session
-(in this case the id) and then will render the required data(in this case the user profile data by fetching
-it using the id data in the session from the database and then render the data).
+of the cookie with the one of the id's of the sessions stores in the database then it will see the value of the session
+(in this case the id of the user and the loggedIn field set to true or false) and then will render the required data(in this case the user profile data by fetching
+it using the user-id data stored in the session from the database and then render the data).

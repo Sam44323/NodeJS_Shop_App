@@ -9,7 +9,7 @@ exports.getLogin = (req, res) => {
   } else {
     cookieValue = false;
   }
-  const errMessage = req.flash('error')[0]; // as flash is an array of element so we extract the message
+  const errMessage = req.flash('error')[0]; // as flash is an array of elements so we extract the message using the indexing
   res.render('auth/login', {
     path: '/login',
     pageTitle: 'Login',
@@ -79,23 +79,24 @@ exports.postSignup = (req, res, next) => {
       req.flash('exists', 'The given email already exists with an account');
       return res.redirect('/signup');
     }
-    bcrypt
-      .hash(password, 12)
-      .then((hashedPassword) => {
-        const newUser = new User({
-          email: email,
-          password: hashedPassword,
-          cart: { items: [] },
-        });
-        return newUser.save();
-      })
-      .then((result) => {
-        res.redirect('/login');
-      })
-      .catch((err) => {
-        console.log(err);
-      }); //returns a promise for the new password
   });
+  //returns a promise for the new password as hashing a value can take some-time
+  bcrypt
+    .hash(password, 12)
+    .then((hashedPassword) => {
+      const newUser = new User({
+        email: email,
+        password: hashedPassword,
+        cart: { items: [] },
+      });
+      return newUser.save(); // returning a new promise to be handled in the next then block
+    })
+    .then((result) => {
+      res.redirect('/login');
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 };
 
 exports.postLogoutMethod = (req, res) => {

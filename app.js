@@ -97,7 +97,7 @@ Why we are storing the user data in the request even after using sessions?
 This is because when we initially store the user data with the mongoose data in the session then it stores
 the data with all the mongoose models and till this point it's fine. But when we again fetch the user data
 from the session, then we don't fetch the data using the mongoose methods but the MongoDBStore fetches the data
-and as we know from the previous experience with the native MongoDB driver code, that it doesn't fetch any methods
+and as we know from previous experience with the native MongoDB driver code, that it doesn't fetch any methods
 associated with the data object and thus we only can read the data but cannot perform any actions on it.
 So to solve this problem, when a new session is created for an user, we just store the id of that user and
 for every subsequent request made by that user, we always create a new instance based on the user id with all
