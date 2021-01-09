@@ -1,6 +1,23 @@
 const bcrypt = require('bcryptjs');
+const nodemialer = require('nodemailer');
+const sendgridTransport = require('nodemailer-sendgrid-transport');
 
 const User = require('../models/user');
+
+/*
+transporter is the setup that tells nodemailer as how the mails should be sent
+
+sendgridTransport() rturns a configuration that will be used by createTransport
+*/
+
+const transporter = nodemialer.createTransport(
+  sendgridTransport({
+    auth: {
+      api_key:
+        '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',
+    },
+  })
+);
 
 exports.getLogin = (req, res) => {
   let cookieValue = req.get('Cookie'); // getting the cookie value from the request header
@@ -41,7 +58,7 @@ exports.postLogin = (req, res) => {
         return res.redirect('/login');
       }
       bcrypt
-        .compare(password, user.password)
+        .compare(password, user.password) // comparing the stored password with the entered password
         .then((matchValue) => {
           if (matchValue) {
             req.session.isLoggedIn = true; //setting up a new session for the user
@@ -92,7 +109,17 @@ exports.postSignup = (req, res, next) => {
       return newUser.save(); // returning a new promise to be handled in the next then block
     })
     .then((result) => {
-      res.redirect('/login');
+      res.redirect('/login'); // we will send the mail after redirecting to the login page
+      return transporter
+        .sendMail({
+          to: email,
+          from: 'samhenrick7@gmail.com', // mail regiestered in sendgrid account
+          subject: 'Signup Succeded!',
+          html: '<h1>You account was successfully created!</h1>',
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     })
     .catch((err) => {
       console.log(err);

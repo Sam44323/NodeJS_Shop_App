@@ -5,8 +5,8 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session); // for storing the sessions in the mongodb database
-const csrf = require('csurf');
-const flash = require('connect-flash');
+const csrf = require('csurf'); // for csrf protection
+const flash = require('connect-flash'); // for storing a temporary messages in the session
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
