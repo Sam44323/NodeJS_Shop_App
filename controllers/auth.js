@@ -20,17 +20,10 @@ const transporter = nodemialer.createTransport(
 );
 
 exports.getLogin = (req, res) => {
-  let cookieValue = req.get('Cookie'); // getting the cookie value from the request header
-  if (cookieValue) {
-    cookieValue = cookieValue.split('=')[1];
-  } else {
-    cookieValue = false;
-  }
   const errMessage = req.flash('error')[0]; // as flash is an array of elements so we extract the message using the indexing
   res.render('auth/login', {
     path: '/login',
     pageTitle: 'Login',
-    isAuthenticated: cookieValue,
     errorMessage: errMessage,
   });
 };
@@ -40,7 +33,6 @@ exports.getSignup = (req, res, next) => {
   res.render('auth/signup', {
     path: '/signup',
     pageTitle: 'Signup',
-    isAuthenticated: false,
     message: message,
   });
 };

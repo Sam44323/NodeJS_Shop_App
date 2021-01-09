@@ -110,7 +110,6 @@ exports.getOrders = (req, res, next) => {
   let c = 0;
   Order.find({ 'user.userId': req.user._id })
     .then((orders) => {
-      console.log(orders);
       const ordersArray = orders.map((order) => {
         return {
           orderId: ++c,
