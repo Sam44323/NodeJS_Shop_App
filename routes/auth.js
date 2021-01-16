@@ -7,6 +7,14 @@ router.get('/login', authControllers.getLogin);
 
 router.get('/signup', authControllers.getSignup);
 
+router.get('/reset', authControllers.getReset);
+
+router.post('/reset', authControllers.postReset);
+
+router.get('/new-password', authControllers.getNewPassword);
+
+router.post('/new-password', authControllers.postNewPassword);
+
 router.post('/login', authControllers.postLogin);
 
 router.post('/signup', authControllers.postSignup);

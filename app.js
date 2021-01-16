@@ -86,7 +86,7 @@ app.use(
     store: store,
   })
 );
-//using csurf after creatingt the sessions as because it will store the tokens in the session
+//using csurf after creating the sessions as because it will store the tokens in the session
 
 app.use(csrfProtection);
 app.use(flash());
@@ -118,7 +118,7 @@ app.use((req, res, next) => {
 });
 
 /*
-locals helps you to set the following local fields to all the rendered views from all the rendered requests
+locals helps you to set the following local fields to all the responses from all the rendered requests
 
 We put csrf tokens in the views where we do the POST request as we only change datas with the POST but not with
 GET

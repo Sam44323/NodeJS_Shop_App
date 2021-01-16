@@ -1,3 +1,5 @@
+const crypto = require('crypto'); //using the crypto library for creating a token
+
 const bcrypt = require('bcryptjs');
 const nodemialer = require('nodemailer');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
@@ -29,7 +31,7 @@ exports.getLogin = (req, res) => {
 };
 
 exports.getSignup = (req, res, next) => {
-  const message = req.flash('exists')[0];
+  const message = req.flash('error')[0];
   res.render('auth/signup', {
     path: '/signup',
     pageTitle: 'Signup',
@@ -60,11 +62,12 @@ exports.postLogin = (req, res) => {
               res.redirect('/');
             }); //returning so that we don't go to the next step of redirecting to the /login page
           }
+          req.flash('error', 'Invalid email or password');
           res.redirect('/login');
         })
         .catch((err) => {
           console.log(err);
-          res.redirect('login');
+          res.redirect('/login');
         });
 
       /*
@@ -85,7 +88,7 @@ exports.postSignup = (req, res, next) => {
   User.findOne({ email: email }).then((user) => {
     if (user) {
       //if an user already exist with the mentioned email
-      req.flash('exists', 'The given email already exists with an account');
+      req.flash('error', 'The given email already exist with an account');
       return res.redirect('/signup');
     }
   });
@@ -101,7 +104,7 @@ exports.postSignup = (req, res, next) => {
       return newUser.save(); // returning a new promise to be handled in the next then block
     })
     .then((result) => {
-      res.redirect('/login'); // we will send the mail after redirecting to the login page
+      res.redirect('/login');
       return transporter
         .sendMail({
           to: email,
@@ -122,6 +125,109 @@ exports.postLogoutMethod = (req, res) => {
   //using the destroy() method for destroying the session data
   req.session.destroy((err) => {
     console.log(err);
-    res.redirect('/');
+    res.redirect('/login');
   });
+};
+
+exports.getReset = (req, res) => {
+  let errMessage = req.flash('error')[0];
+  if (req.flash('error').length == 0) {
+    errMessage = '';
+  }
+  res.render('auth/resetPassword', {
+    path: '/reset',
+    pageTitle: 'Reset Password',
+    errorMessage: errMessage,
+  });
+};
+
+exports.postReset = (req, res) => {
+  //using a token based authentication for resetting the password of the user
+  crypto.randomBytes(32, (err, buffer) => {
+    if (err) {
+      console.log(err);
+      res.redirect('/reset');
+    }
+    const token = buffer.toString('hex'); // creating a token from the buffer
+    User.findOne({ email: req.body.email })
+      .then((user) => {
+        if (!user) {
+          req.flash('error', 'No account with that email is found!');
+          res.redirect('/reset');
+        }
+        user.resetToken = token;
+        user.resetTokenExpiration = Date.now() + 3600000;
+        return user.save();
+      })
+      .then((resp) => {
+        //sending the email with the token created for resetting the password to the user
+        res.redirect('/login');
+        transporter
+          .sendMail({
+            to: req.body.email,
+            from: 'samhenrick7@gmail.com', // mail regiestered in sendgrid account
+            subject: 'Passoword Reset Request!',
+            html: `
+            <p>You requested a passowrd reset!</p>
+            <p>Click this <a href="http://localhost:3000/new-password/?token=${token}">link</a> to set up a new password</p>
+            `,
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+};
+
+exports.getNewPassword = (req, res) => {
+  const token = req.query.token; // extracting the token from the url
+
+  let errMessage = req.flash('error')[0];
+  if (req.flash('error').length == 0) {
+    errMessage = '';
+  }
+  res.render('auth/new-password', {
+    path: '/new-password',
+    pageTitle: 'New Password',
+    errorMessage: errMessage,
+    tokenValue: token,
+  });
+};
+
+exports.postNewPassword = (req, res) => {
+  const tokenValue = req.body.tokenValue;
+  User.findOne({
+    resetToken: tokenValue,
+    resetTokenExpiration: { $gt: Date.now() },
+  })
+    .then((userValue) => {
+      if (!userValue) {
+        req.flash('error', 'No user is present!');
+        res.redirect('/reset');
+      }
+      bcrypt
+        .hash(req.body.password, 12)
+        .then((hashedPassword) => {
+          userValue.password = hashedPassword;
+          return userValue.save(); // returning a new promise to be handled in the next then block
+        })
+        .then((result) => {
+          res.redirect('/login');
+          return transporter.sendMail({
+            to: userValue.email,
+            from: 'samhenrick7@gmail.com', // mail regiestered in sendgrid account
+            subject: 'Password Reset',
+            html: '<h1>You password was successfully changed!</h1>',
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 };
