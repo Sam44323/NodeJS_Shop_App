@@ -159,22 +159,18 @@ exports.postReset = (req, res) => {
         user.resetTokenExpiration = Date.now() + 3600000;
         return user.save();
       })
-      .then((resp) => {
+      .then(() => {
         //sending the email with the token created for resetting the password to the user
         res.redirect('/login');
-        transporter
-          .sendMail({
-            to: req.body.email,
-            from: 'samhenrick7@gmail.com', // mail regiestered in sendgrid account
-            subject: 'Passoword Reset Request!',
-            html: `
+        transporter.sendMail({
+          to: req.body.email,
+          from: 'samhenrick7@gmail.com', // mail regiestered in sendgrid account
+          subject: 'Passoword Reset Request!',
+          html: `
             <p>You requested a passowrd reset!</p>
             <p>Click this <a href="http://localhost:3000/new-password/?token=${token}">link</a> to set up a new password</p>
             `,
-          })
-          .catch((err) => {
-            console.log(err);
-          });
+        });
       })
       .catch((err) => {
         console.log(err);
@@ -199,6 +195,7 @@ exports.getNewPassword = (req, res) => {
 
 exports.postNewPassword = (req, res) => {
   const tokenValue = req.body.tokenValue;
+  //find the user with the matching token value that is still valid for working
   User.findOne({
     resetToken: tokenValue,
     resetTokenExpiration: { $gt: Date.now() },
