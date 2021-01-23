@@ -2,7 +2,7 @@ const Product = require('../models/product');
 const Order = require('../models/order');
 
 /*
-We can use methods such as findByIdAndDelete and etc only on the models itself but not on the instances created on it.
+We can use methods such as findByIdAndDelete and etc only on the models(accordingly) itself but not on the instances created on it.
 */
 
 exports.getProducts = (req, res, next) => {
