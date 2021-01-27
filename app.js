@@ -144,9 +144,11 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then((result) => {
+  .then(() => {
     console.log('Connected to the database!');
-    app.listen(3000);
+    app.listen(3000, () => {
+      console.log('Connected to the server!');
+    });
   })
   .catch((err) => {
     console.log(err);

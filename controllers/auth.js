@@ -1,4 +1,5 @@
 const crypto = require('crypto'); //using the crypto library for creating a token
+const { validationResult } = require('express-validator');
 
 const bcrypt = require('bcryptjs');
 const nodemialer = require('nodemailer');
@@ -82,6 +83,16 @@ exports.postSignup = (req, res, next) => {
   /*
   after signing up we redirect to th login page for creating a new session with the newly created user
   */
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.render('auth/signup', {
+      path: '/signup',
+      pageTitle: 'Signup',
+      message: errors.array()[0].msg,
+    });
+  }
+
   const email = req.body.email;
   const password = req.body.password;
   const confirmPassword = req.body.confirmPassword;
