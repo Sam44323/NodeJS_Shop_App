@@ -1,5 +1,6 @@
 const Product = require('../models/product');
 const Order = require('../models/order');
+const errorCreator = require('../errorObjectCreator/errorObj');
 
 /*
 We can use methods such as findByIdAndDelete and etc only on the models(accordingly) itself but not on the instances created on it.
@@ -15,7 +16,7 @@ exports.getProducts = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      return next(errorCreator(err, 500));
     });
 };
 
@@ -29,7 +30,9 @@ exports.getProduct = (req, res, next) => {
         path: '/products',
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      return next(errorCreator(err, 500));
+    });
 };
 
 exports.getIndex = (req, res, next) => {
@@ -42,7 +45,7 @@ exports.getIndex = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      return next(errorCreator(err, 500));
     });
 };
 
@@ -58,7 +61,9 @@ exports.getCart = (req, res, next) => {
         products: req.user.cart.items, // getting the cartItems from the user stores in the session
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      return next(errorCreator(err, 500));
+    });
 };
 
 exports.postCart = (req, res, next) => {
@@ -66,7 +71,7 @@ exports.postCart = (req, res, next) => {
     .then((product) => {
       return req.user.addToCart(product);
     })
-    .then((result) => {
+    .then(() => {
       res.redirect('/cart');
     });
 };
@@ -74,10 +79,12 @@ exports.postCart = (req, res, next) => {
 exports.postCartDeleteProduct = (req, res, next) => {
   req.user
     .removeFromCart(req.body.productId)
-    .then((result) => {
+    .then(() => {
       res.redirect('/cart');
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      return next(errorCreator(err, 500));
+    });
 };
 
 exports.postOrder = (req, res, next) => {
@@ -97,13 +104,15 @@ exports.postOrder = (req, res, next) => {
       });
       return order.save();
     })
-    .then((result) => {
+    .then(() => {
       return req.user.clearCart();
     })
     .then(() => {
       res.redirect('/orders');
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      return next(errorCreator(err, 500));
+    });
 };
 
 exports.getOrders = (req, res, next) => {
@@ -122,5 +131,7 @@ exports.getOrders = (req, res, next) => {
         ordersArray: ordersArray,
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      return next(errorCreator(err, 500));
+    });
 };

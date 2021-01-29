@@ -1,5 +1,6 @@
 const crypto = require('crypto'); //using the crypto library for creating a token
 const { validationResult } = require('express-validator');
+const errorCreator = require('../errorObjectCreator/errorObj');
 
 const bcrypt = require('bcryptjs');
 const nodemialer = require('nodemailer');
@@ -103,7 +104,9 @@ exports.postLogin = (req, res) => {
       the session data is shared across multiple requests from the same user
       */
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      return next(errorCreator(err, 500));
+    });
 };
 
 exports.postSignup = (req, res, next) => {
@@ -142,19 +145,15 @@ exports.postSignup = (req, res, next) => {
     })
     .then(() => {
       res.redirect('/login');
-      return transporter
-        .sendMail({
-          to: email,
-          from: 'samhenrick7@gmail.com', // mail regiestered in sendgrid account
-          subject: 'Signup Succeded!',
-          html: '<h1>You account was successfully created!</h1>',
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+      return transporter.sendMail({
+        to: email,
+        from: 'samhenrick7@gmail.com', // mail regiestered in sendgrid account
+        subject: 'Signup Succeded!',
+        html: '<h1>You account was successfully created!</h1>',
+      });
     })
     .catch((err) => {
-      console.log(err);
+      return next(errorCreator(err, 500));
     });
 };
 
@@ -210,7 +209,7 @@ exports.postReset = (req, res) => {
         });
       })
       .catch((err) => {
-        console.log(err);
+        return next(errorCreator(err, 500));
       });
   });
 };
@@ -248,7 +247,7 @@ exports.postNewPassword = (req, res) => {
           userValue.password = hashedPassword;
           return userValue.save(); // returning a new promise to be handled in the next then block
         })
-        .then((result) => {
+        .then(() => {
           res.redirect('/login');
           return transporter.sendMail({
             to: userValue.email,
@@ -256,12 +255,9 @@ exports.postNewPassword = (req, res) => {
             subject: 'Password Reset',
             html: '<h1>You password was successfully changed!</h1>',
           });
-        })
-        .catch((err) => {
-          console.log(err);
         });
     })
     .catch((err) => {
-      console.log(err);
+      return next(errorCreator(err, 500));
     });
 };

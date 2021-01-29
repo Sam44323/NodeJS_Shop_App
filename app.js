@@ -53,25 +53,6 @@ mongoose behind the scene applies all the database methods for crud operations o
 on the collections in the database
 
 ------------------------------------------------------------------------
-Definitions of all the configurations in the for the sessions:-
----------------------------------------------------------------
-secret:-
-----------
-This is the secret used to sign the session ID cookie. This can be either a string for a single secret,
-or an array of multiple secrets. If an array of secrets is provided, only the first element will be
-used to sign the session ID cookie, while all the elements will be considered when verifying the
-signature in requests
--------------------------------------------
-
-resave:-
---------------
-Forces the session to be saved back to the session store,
-even if the session was never modified during the request
-------------------------------------------------------------
-saveUninitialized:-
-----------------------
-Forces a session that is "uninitialized" to be saved to the store.
-A session is uninitialized when it is new but not modified
 */
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -109,11 +90,14 @@ app.use((req, res, next) => {
   //storing the mongoose user object of the user data that is stored in the session for that user
   User.findById(req.session.user)
     .then((user) => {
+      if (!user) {
+        return next();
+      }
       req.user = user;
       next();
     })
     .catch((err) => {
-      console.log(err);
+      throw new Error(err);
     });
 });
 
@@ -134,9 +118,17 @@ app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
 
-app.use(errorController.get404);
-//after we get a connection to the database then we will start the dev server
+app.get('/error/500', errorController.get500);
 
+app.use(errorController.get404);
+
+//example of creating an error handling middleware
+
+app.use((error, req, res, next) => {
+  res.redirect('/error/500');
+});
+
+//after we get a connection to the database then we will start the dev server
 //using mongoose for connecting to the MongoDB database
 
 mongoose

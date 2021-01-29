@@ -1,5 +1,6 @@
 const Product = require('../models/product');
 const { validationResult } = require('express-validator');
+const { errorCreator } = require('../errorObjectCreator/errorObj');
 
 /*
 We can use methods such as findByIdAndDelete and etc only on the models itself but not on the instances created.
@@ -47,12 +48,13 @@ exports.postAddProduct = (req, res, next) => {
   });
   product
     .save()
-    .then((result) => {
+    .then(() => {
       console.log('Created Product');
       res.redirect('/admin/products');
     })
     .catch((err) => {
-      console.log(err);
+      return next(errorCreator(err, 500));
+      //When we call next with an error passed as an argument, then we let express know that an error occured and it will skip all other middlewares and move right away to a error handling middleware(defined by us)
     });
 };
 
@@ -73,7 +75,9 @@ exports.getEditProduct = (req, res, next) => {
         validationError: [],
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      return next(errorCreator('Cant find the product', 500));
+    });
 };
 
 exports.postEditProduct = (req, res, next) => {
@@ -107,7 +111,9 @@ exports.postEditProduct = (req, res, next) => {
       console.log('UPDATED PRODUCT!');
       res.redirect('/admin/products');
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      return next(errorCreator(err, 500));
+    });
 };
 
 exports.getProducts = (req, res, next) => {
@@ -121,7 +127,9 @@ exports.getProducts = (req, res, next) => {
         path: '/admin/products',
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      return next(errorCreator(err, 500));
+    });
 };
 
 exports.postDeleteProduct = (req, res, next) => {
@@ -141,6 +149,6 @@ exports.postDeleteProduct = (req, res, next) => {
       res.redirect('/admin/products');
     })
     .catch((err) => {
-      console.log(err);
+      return next(errorCreator(err, 500));
     });
 };
