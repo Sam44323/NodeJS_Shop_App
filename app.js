@@ -10,6 +10,7 @@ const flash = require('connect-flash'); // for storing a temporary messages in t
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
+const errorCreator = require('./errorObjectCreator/errorObj');
 
 const MONGODB_URI =
   'mongodb+srv://admin-suranjan:admin-suranjan@cluster0.hzfia.mongodb.net/shop?retryWrites=true&w=majority';
@@ -72,6 +73,12 @@ app.use(
 app.use(csrfProtection);
 app.use(flash());
 
+app.use((req, res, next) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
+
 /*
 Why we are storing the user data in the request even after using sessions?
 -------------------------------------------------------------------------------
@@ -97,7 +104,7 @@ app.use((req, res, next) => {
       next();
     })
     .catch((err) => {
-      throw new Error(err);
+      return next(errorCreator(err));
     });
 });
 
@@ -107,12 +114,6 @@ locals helps you to set the following local fields to all the responses from all
 We put csrf tokens in the views where we do the POST request as we only change datas with the POST but not with
 GET
 */
-
-app.use((req, res, next) => {
-  res.locals.isAuthenticated = req.session.isLoggedIn;
-  res.locals.csrfToken = req.csrfToken();
-  next();
-});
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
