@@ -27,6 +27,12 @@
   background-color: transparent;
 }
 
+.form-control input.invalid,
+.form-control textarea.invalid {
+  border: 1px solid rgb(228, 48, 48);
+  background-color: salmon;
+}
+
 .resetLink:hover {
   color: black;
 }

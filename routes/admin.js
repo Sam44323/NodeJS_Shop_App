@@ -1,6 +1,5 @@
-const path = require('path');
-
 const express = require('express');
+const { check } = require('express-validator');
 
 const adminController = require('../controllers/admin');
 const authMiddleware = require('../middleware/is_auth');
@@ -21,7 +20,21 @@ router.get('/add-product', authMiddleware, adminController.getAddProduct);
 router.get('/products', authMiddleware, adminController.getProducts);
 
 // /admin/add-product => POST
-router.post('/add-product', authMiddleware, adminController.postAddProduct);
+router.post(
+  '/add-product',
+  [
+    check('title', 'Please enter a title!').notEmpty().isLength({ min: 3 }),
+    check('imageUrl', 'Please enter an image for the product!').isLength({
+      min: 5,
+    }),
+    check('price', 'Please enter the price for the product!').isFloat(),
+    check('description', 'Please enter some details for the products!')
+      .notEmpty()
+      .isLength({ min: 5, max: 400 }),
+  ],
+  authMiddleware,
+  adminController.postAddProduct
+);
 
 router.get(
   '/edit-product/:productId',
@@ -29,7 +42,21 @@ router.get(
   adminController.getEditProduct
 );
 
-router.post('/edit-product', authMiddleware, adminController.postEditProduct);
+router.post(
+  '/edit-product',
+  [
+    check('title', 'Please enter a title!').notEmpty().isLength({ min: 3 }),
+    check('imageUrl', 'Please enter an image for the product!').isLength({
+      min: 5,
+    }),
+    check('price', 'Please enter the price for the product!').isFloat(),
+    check('description', 'Please enter some details for the products!')
+      .notEmpty()
+      .isLength({ min: 5, max: 400 }),
+  ],
+  authMiddleware,
+  adminController.postEditProduct
+);
 
 router.post(
   '/delete-product',
