@@ -24,11 +24,11 @@ const transporter = nodemialer.createTransport(
 );
 
 exports.getLogin = (req, res) => {
-  const errMessage = req.flash('error')[0]; // as flash is an array of elements so we extract the message using the indexing
+  const errorMessage = [...req.flash('error')];
   res.render('auth/login', {
     path: '/login',
     pageTitle: 'Login',
-    errorMessage: errMessage,
+    errorMessage: errorMessage[0],
     oldInput: {
       email: '',
       password: '',
@@ -92,10 +92,11 @@ exports.postLogin = (req, res) => {
             }); //returning so that we don't go to the next step of redirecting to the /login page
           }
           req.flash('error', 'Invalid email or password');
-          res.redirect('/login');
+          return res.redirect('/login');
         })
         .catch((err) => {
           console.log(err);
+          req.flash('error', 'Invalid email or password');
           res.redirect('/login');
         });
 

@@ -24,9 +24,6 @@ router.post(
   '/add-product',
   [
     check('title', 'Please enter a title!').notEmpty().isLength({ min: 3 }),
-    check('imageUrl', 'Please enter an image for the product!').isLength({
-      min: 5,
-    }),
     check('price', 'Please enter the price for the product!').isFloat(),
     check('description', 'Please enter some details for the products!')
       .notEmpty()
@@ -46,9 +43,6 @@ router.post(
   '/edit-product',
   [
     check('title', 'Please enter a title!').notEmpty().isLength({ min: 3 }),
-    check('imageUrl', 'Please enter an image for the product!').isLength({
-      min: 5,
-    }),
     check('price', 'Please enter the price for the product!').isFloat(),
     check('description', 'Please enter some details for the products!')
       .notEmpty()

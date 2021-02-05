@@ -3,21 +3,20 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const mongoConstants = require('./constants');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session); // for storing the sessions in the mongodb database
 const csrf = require('csurf'); // for csrf protection
 const flash = require('connect-flash'); // for storing a temporary messages in the session
+const multer = require('multer'); // for parsing the data with files
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
 const errorCreator = require('./errorObjectCreator/errorObj');
 
-const MONGODB_URI =
-  'mongodb+srv://admin-suranjan:admin-suranjan@cluster0.hzfia.mongodb.net/shop?retryWrites=true&w=majority';
-
 const app = express();
 const store = new MongoDBStore({
-  uri: MONGODB_URI, // to which database it should create a store for storing the sessions
+  uri: mongoConstants.MONGO_URI, // to which database it should create a store for storing the sessions
   collection: 'sessions', // the collection in which the sessions will be store in the database
 });
 
@@ -29,6 +28,29 @@ const shopRoutes = require('./routes/shop');
 const authRoutes = require('./routes/auth');
 
 const csrfProtection = csrf();
+
+const fileStorageConfigValue = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'images');
+  },
+  filename: (req, file, cb) => {
+    cb(null, new Date().toISOString().replace(/:/g, '-') + file.originalname); // setting the file name
+  },
+});
+
+//for filtering out invalid files i.e. files other than png, jpg or jpeg
+
+const fileFilterObject = (req, file, cb) => {
+  if (
+    file.mimetype === 'image/png' ||
+    file.mimetype === 'image/jpg' ||
+    file.mimetype === 'image/jpeg'
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
 
 /*
 Why we are creating a new User object when we are getting the user as the response(when use native MongoDB driver)?
@@ -57,6 +79,12 @@ on the collections in the database
 */
 
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(
+  multer({
+    storage: fileStorageConfigValue,
+    fileFilter: fileFilterObject,
+  }).single('image')
+);
 app.use(express.static(path.join(__dirname, 'public')));
 
 //setting up the session middleware
@@ -133,7 +161,7 @@ app.use((error, req, res, next) => {
 //using mongoose for connecting to the MongoDB database
 
 mongoose
-  .connect(MONGODB_URI, {
+  .connect(mongoConstants.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
