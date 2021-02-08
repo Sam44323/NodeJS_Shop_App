@@ -165,7 +165,22 @@ exports.getInvoice = (req, res, next) => {
       );
       pdfDoc.pipe(res); // piping the same created pdf to the response
 
-      pdfDoc.text('This is the invoice');
+      //configuring the styling for the generated pdf using the package
+      pdfDoc.fontSize(26).text('Your Order Invoice', {
+        underline: true,
+        align: 'center',
+      });
+      pdfDoc.fontSize(17); // the latter parts of the pdfs will have a font-size of 17
+      pdfDoc.text('----------------------------------------------------');
+      let totalPrice = 0;
+      order.products.forEach((prod) => {
+        totalPrice = totalPrice + prod.quantity * prod.product.price;
+        pdfDoc.text(
+          `${prod.product.title} - $ ${prod.product.price} Quantity: ${prod.quantity}`
+        );
+      });
+      pdfDoc.text('--------------------------');
+      pdfDoc.fontSize(20).text(`Total Price: ${totalPrice}`);
       pdfDoc.end();
     })
     .catch((err) => next(err));

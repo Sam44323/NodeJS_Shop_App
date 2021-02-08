@@ -11,11 +11,11 @@
                 <ul class="orders">
                     <% ordersArray.forEach(orderItem => { %>
                         <li class="orders__item">
-                            <h1>Order - # <%= orderItem.orderId %></h1>
+                            <h1>Order - # <%= orderItem.orderId %> <a href="/orders-invoice/<%= orderItem._id %>">Invoice</a></h1>
                             <ul class="orders__products">
                                 <% for(let prod of orderItem.products){ %>
                                     <li class="orders__products-item"><%= prod.product.title %> (<%= prod.quantity %>)</li>
-                                    <p>Price - <%=(prod.product.price * prod.quantity).toFixed(2)%> <a href="/orders-invoice/<%= orderItem._id %>">Invoice</a></p>
+                                    <p>Price - <%=(prod.product.price * prod.quantity).toFixed(2)%></p>
                                  <%}%>
                             </ul>
                         </li>
