@@ -15,11 +15,8 @@
                             <ul class="orders__products">
                                 <% for(let prod of orderItem.products){ %>
                                     <li class="orders__products-item"><%= prod.product.title %> (<%= prod.quantity %>)</li>
-                                    <p>Price - <%=(prod.product.price * prod.quantity).toFixed(2)%></p>
+                                    <p>Price - <%=(prod.product.price * prod.quantity).toFixed(2)%> <a href="/orders-invoice/<%= orderItem._id %>">Invoice</a></p>
                                  <%}%>
-                                <!-- <% orderItem.products.forEach(product => { %>
-                                    <li class="orders__products-item"><%= product.title %> (<%= product.quantity %>)</li>
-                                <% }); %> -->
                             </ul>
                         </li>
                     <% }); %>

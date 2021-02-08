@@ -1,6 +1,9 @@
 const Product = require('../models/product');
 const Order = require('../models/order');
 const errorCreator = require('../errorObjectCreator/errorObj');
+const fs = require('fs');
+const path = require('path');
+const PDFDocument = require('pdfkit'); // exposes a PDFDocument constructor
 
 /*
 We can use methods such as findByIdAndDelete and etc only on the models(accordingly) itself but not on the instances created on it.
@@ -121,8 +124,8 @@ exports.getOrders = (req, res, next) => {
     .then((orders) => {
       const ordersArray = orders.map((order) => {
         return {
+          ...order._doc,
           orderId: ++c,
-          products: [...order.products],
         };
       });
       res.render('shop/orders', {
@@ -134,4 +137,36 @@ exports.getOrders = (req, res, next) => {
     .catch((err) => {
       return next(errorCreator(err, 500));
     });
+};
+
+exports.getInvoice = (req, res, next) => {
+  const orderId = req.params.orderId;
+  Order.findById(orderId)
+    .then((order) => {
+      if (!order) {
+        return next(errorCreator('No order found', 422));
+      }
+      if (order.user.userId.toString() !== req.user._id.toString()) {
+        return next(errorCreator('Unauthorized!'));
+      }
+      const invoiceName = `invoice-${orderId}.pdf`; // the invoice file with the the following orderId
+      //creating the path for the destined file for reading it from the application
+
+      const invoicePath = path.join('data', 'invoices', invoiceName);
+
+      const pdfDoc = new PDFDocument();
+      pdfDoc.pipe(fs.createWriteStream(invoicePath)); // creating a new pdf docuement chunk by chunk and storing it in the servers file system
+
+      //as res is a writable stream so we can send data in pieces
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        'inline; filename="' + invoiceName + '"'
+      );
+      pdfDoc.pipe(res); // piping the same created pdf to the response
+
+      pdfDoc.text('This is the invoice');
+      pdfDoc.end();
+    })
+    .catch((err) => next(err));
 };
