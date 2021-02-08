@@ -28,7 +28,6 @@ exports.postAddProduct = (req, res, next) => {
       product: {
         title: req.body.title,
         description: req.body.description,
-        imageUrl: req.body.imageUrl,
         price: req.body.price,
       },
       validationError: errors.array(),
@@ -38,15 +37,32 @@ exports.postAddProduct = (req, res, next) => {
   const title = req.body.title;
   const image = req.file;
   const price = req.body.price;
-  console.log(image);
   const description = req.body.description;
+  if (!image) {
+    return res.status(422).render('admin/edit-product', {
+      pageTitle: 'Add Product',
+      path: '/admin/add-product',
+      editing: false,
+      errorMessage: 'Attached file is not an image!',
+      product: {
+        title: req.body.title,
+        description: req.body.description,
+        price: req.body.price,
+      },
+      validationError: [],
+    });
+  }
+
+  //we are storing the filepath of the image file instead of the entire file as because storing an entire file and then quering it can be very inefficient
+
   const product = new Product({
     title: title,
     price: price,
     description: description,
-    image: image,
+    imageUrl: image.path,
     userId: req.user._id,
   });
+
   product
     .save()
     .then(() => {
@@ -92,7 +108,6 @@ exports.postEditProduct = (req, res, next) => {
       product: {
         title: req.body.title,
         description: req.body.description,
-        imageUrl: req.body.imageUrl,
         price: req.body.price,
         _id: req.body.productId,
       },
@@ -105,7 +120,10 @@ exports.postEditProduct = (req, res, next) => {
       product.title = req.body.title;
       product.price = req.body.price;
       product.description = req.body.description;
-      product.imageUrl = req.body.imageUrl;
+      if (req.file) {
+        //if the file is invalid as defined by multer we dont overwrite the old image
+        product.imageUrl = req.file.path;
+      }
       return product.save();
     })
     .then(() => {
@@ -119,8 +137,6 @@ exports.postEditProduct = (req, res, next) => {
 
 exports.getProducts = (req, res, next) => {
   Product.find({ userId: req.user._id })
-    // .select('title price -_id')
-    // .populate('userId', 'name')
     .then((products) => {
       res.render('admin/products', {
         prods: products,
