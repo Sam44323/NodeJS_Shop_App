@@ -166,7 +166,7 @@ exports.getInvoice = (req, res, next) => {
       pdfDoc.pipe(res); // piping the same created pdf to the response
 
       //configuring the styling for the generated pdf using the package
-      pdfDoc.fontSize(26).text('Your Order Invoice', {
+      pdfDoc.fontSize(26).text('Your Order Invoices', {
         underline: true,
         align: 'center',
       });
