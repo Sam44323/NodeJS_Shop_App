@@ -181,7 +181,7 @@ exports.getInvoice = (req, res, next) => {
       pdfDoc.text('--------------------------');
       pdfDoc.fontSize(20).text(`Total Price: ${totalPrice}`);
       pdfDoc.end();
-      pdfDoc.pipe(res); // piping the same created pdf to the response
+      pdfDoc.pipe(res); // piping the same created pdf to the response object of node
     })
     .catch((err) => next(err));
 };
