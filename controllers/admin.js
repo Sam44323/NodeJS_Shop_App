@@ -1,6 +1,7 @@
 const Product = require('../models/product');
 const { validationResult } = require('express-validator');
 const { errorCreator } = require('../errorObjectCreator/errorObj');
+const fileHelper = require('../util/file');
 
 /*
 We can use methods such as findByIdAndDelete and etc only on the models itself but not on the instances created.
@@ -120,8 +121,9 @@ exports.postEditProduct = (req, res, next) => {
       product.title = req.body.title;
       product.price = req.body.price;
       product.description = req.body.description;
+      //if the file is invalid as defined by multer we dont overwrite the old image
       if (req.file) {
-        //if the file is invalid as defined by multer we dont overwrite the old image
+        fileHelper.deleteFile(product.imageUrl);
         product.imageUrl = req.file.path;
       }
       return product.save();
@@ -155,6 +157,7 @@ exports.postDeleteProduct = (req, res, next) => {
   Product.findById(prodId)
     .then((product) => {
       if (product.userId.toString() === userId) {
+        fileHelper.deleteFile(product.imageUrl);
         //product will only be deleted by the user who created it
         return Product.findByIdAndRemove(prodId, {
           useFindAndModify: false,
