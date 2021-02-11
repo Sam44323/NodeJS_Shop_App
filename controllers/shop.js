@@ -164,6 +164,11 @@ exports.getInvoice = (req, res, next) => {
         'inline; filename="' + invoiceName + '"'
       );
 
+      /*
+      As pdfdoc is a readable stream so we can use the pipe method for creating a stream
+      for piping datas
+      */
+
       //configuring the styling for the generated pdf using the package
       pdfDoc.fontSize(26).text('Your Order Invoices', {
         underline: true,
