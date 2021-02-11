@@ -163,7 +163,6 @@ exports.getInvoice = (req, res, next) => {
         'Content-Disposition',
         'inline; filename="' + invoiceName + '"'
       );
-      pdfDoc.pipe(res); // piping the same created pdf to the response
 
       //configuring the styling for the generated pdf using the package
       pdfDoc.fontSize(26).text('Your Order Invoices', {
@@ -182,6 +181,7 @@ exports.getInvoice = (req, res, next) => {
       pdfDoc.text('--------------------------');
       pdfDoc.fontSize(20).text(`Total Price: ${totalPrice}`);
       pdfDoc.end();
+      pdfDoc.pipe(res); // piping the same created pdf to the response
     })
     .catch((err) => next(err));
 };
